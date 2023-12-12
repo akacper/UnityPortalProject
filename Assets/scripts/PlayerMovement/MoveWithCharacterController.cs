@@ -22,19 +22,26 @@ public class MoveWithCharacterController : MonoBehaviour
     [SerializeField] private PortalGun portalGunScript;
     [SerializeField] private Portal portalAScript;
     [SerializeField] private Portal portalBScript;
-
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip walkSound;
     private void Start()
     {
         controller = GetComponent<CharacterController>();
         finishScript = FindObjectOfType<Finish>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.clip = walkSound;
     }
 
     void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            return;
+        }
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
-        groundedPlayer = controller.isGrounded;
+        groundedPlayer = IsGrounded();
         if (groundedPlayer)
         { 
             // Update last time player was grounded
@@ -46,8 +53,9 @@ public class MoveWithCharacterController : MonoBehaviour
             // Consider grounded short time after leaving the ground
             groundedPlayer = true;
         }
-
+        
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
+        Vector3 moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         controller.Move(move * Time.deltaTime * playerSpeed);
 
         if (Input.GetButtonDown("Jump") && groundedPlayer)
@@ -57,6 +65,21 @@ public class MoveWithCharacterController : MonoBehaviour
 
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
+
+        // Play walking sound if the character is moving
+        if (moveDirection.magnitude > 0.1f && !audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+        else if (moveDirection.magnitude < 0.1f && audioSource.isPlaying)
+        {
+            // Stop the walking sound if the character is not moving
+            audioSource.Stop();
+        }
+        if (!groundedPlayer)
+        {
+            audioSource.Stop();
+        }
     }
     bool IsGrounded()
     {
@@ -65,14 +88,11 @@ public class MoveWithCharacterController : MonoBehaviour
 
     void OnTriggerEnter(Collider collision)
     {
-        if (collision.CompareTag("Obstacle"))
-        {
-            Debug.Log("Wykryto dotkniecie przeszkody (skrypt gracza)");
-        }
-        else if (collision.CompareTag("Finish"))
+        if (collision.CompareTag("Finish"))
         {
             int placed = portalGunScript.GetPlacements();
             int passed = portalAScript.GetPasses() + portalBScript.GetPasses();
+            audioSource.Stop();
             finishScript.ShowUI(placed, passed);
         }
     }

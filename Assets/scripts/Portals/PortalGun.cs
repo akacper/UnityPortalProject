@@ -9,15 +9,30 @@ public class PortalGun : MonoBehaviour
     [SerializeField] private GameObject A;
     [SerializeField] private GameObject B;
     [SerializeField] private string hitTagName = "PortalWall";
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip portalSound1;
+    [SerializeField] private AudioClip portalSound2;
+    [SerializeField] private AudioClip portalNotPlacedSound;
+
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
 
     private void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            return;
+        }
         if (Input.GetButtonDown("Fire1"))
         {
+            PlaySound(portalSound1);
             Shoot(A);
         }
         else if (Input.GetButtonDown("Fire2"))
         {
+            PlaySound(portalSound2);
             Shoot(B);
         }
     }
@@ -30,6 +45,7 @@ public class PortalGun : MonoBehaviour
             string hitTag = rayHit.transform.gameObject.tag;
             if (hitTag != hitTagName)
             {
+                PlaySound(portalNotPlacedSound);
                 return;
             }
             Vector3 hitPos = rayHit.point;
@@ -43,5 +59,13 @@ public class PortalGun : MonoBehaviour
     public int GetPlacements()
     {
         return portalShots;
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }

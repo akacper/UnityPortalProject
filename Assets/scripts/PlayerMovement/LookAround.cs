@@ -19,6 +19,10 @@ public class LookAround : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            return;
+        }
         float mouseXMove = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         float mouseYMove = Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
 

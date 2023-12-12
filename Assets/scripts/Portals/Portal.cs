@@ -9,12 +9,14 @@ public class Portal : MonoBehaviour
     private Vector3 velocity;
     private CharacterController controller;
     private GameObject liftable;
-
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip teleportSound;
     // public string wallTag = "PortalWall";
 
     private void Start()
     {
         connectedPortal = FindPortal();
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void OnTriggerEnter(Collider collision)
@@ -28,17 +30,17 @@ public class Portal : MonoBehaviour
         if (collision.transform.gameObject.CompareTag("Liftable"))
         {
             velocity = collision.GetComponent<Rigidbody>().velocity;
-            Debug.Log(connectedPortal.transform.forward);
-            velocity = new Vector3(velocity.y, 0, 0);
-            if (collision.transform.forward == Vector3.zero)
-            {
+            // Debug.Log(connectedPortal.transform.forward);
+            // velocity = new Vector3(velocity.y, 0, 0);
+            // if (collision.transform.forward == Vector3.zero)
+            // {
 
-            }
+            // }
             collision.GetComponent<Rigidbody>().useGravity = false;
             collision.GetComponent<Rigidbody>().velocity = Vector3.zero;
             collision.transform.position = connectedPortalPos;
             collision.transform.LookAt(connectedPortal.transform.Find("LookAt"));
-            // collision.GetComponent<Rigidbody>().AddForce(velocity, ForceMode.Impulse);
+            collision.GetComponent<Rigidbody>().AddForce(velocity, ForceMode.Impulse);
 
            Vector3 portalForward = connectedPortal.transform.Find("LookAt").forward;
             // Project the velocity onto the portal forward direction
@@ -46,8 +48,8 @@ public class Portal : MonoBehaviour
             // Set the velocity based on the direction of the portal
             collision.GetComponent<Rigidbody>().velocity = portalForward * velocityProjection;
             collision.GetComponent<Rigidbody>().AddForce(velocity, ForceMode.Impulse);
-
             collision.GetComponent<Rigidbody>().useGravity = true;
+            PlaySound(teleportSound);
         }
         else if (controller)
         {
@@ -57,6 +59,7 @@ public class Portal : MonoBehaviour
             controller.transform.LookAt(connectedPortal.transform.Find("LookAt"));
             controller.enabled = true;
             portalPasses++;
+            PlaySound(teleportSound);
         }
     }
 
@@ -77,5 +80,13 @@ public class Portal : MonoBehaviour
     public int GetPasses()
     {
         return portalPasses;
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }
